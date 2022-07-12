@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<title>Gladiators</title>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="title" content="Gladiators">
+<meta name="description" content="Game">
+<button onclick="MoveRight()"> This is a button </button>
+<link rel="icon" type="image/png" href="glario.png"> 
+<link rel="stylesheet" type="text/css" href="style.css"> 
+<link rel="manifest" href="manifest.manifest">
+</head>
+<body onload="">
+<div class="maindiv" id="maindiv">
+<div class="canvasdiv" id="canvasdiv">
+<canvas class="canvas"id="canvas" width="1280" height="720">
+Your web browser does not support canvas.
+</canvas>
+
+<button> This is a button for advance right</button>
+<button> This is a button for advance left</button>
+</div>
+</div><!-- maindiv -->
+
+</body>
+<script type="text/javascript">
+
+// IMAGES
+
+
+//Main class for everything
+//Task list 
+
+//Clean the log first 
+//Use direction to know if object is on our feet, and so we can step on it, or just stop jumping
+
+
+class Actor 
+{
+
+
+
+	constructor(name, x, y, team, mainTexture, InternalTexture, ActorHealth, ActorState, collisionSizeMinX1, collisionSizeMinY1, collisionSizeMaxX1, collisionSizeMaxY1, DrawSizeX, DrawSizeY, ClippingImageSizeX, ClippingImageSizeY ) 
+	{
+		//Other variables
+		this.AirActualSpeed = 2;
+		//contruct variables
+		this.name = name;
+		this.x = x; 
+		this.y = y;
+		this.team = team; //Team 1 Players/hero  Team 2 Enemies
+		this.mainTexture = mainTexture;//"BloodForWebGladiators1.png"; 
+		this.InternalTexture=new Image();
+		this.InternalTexture.setAttribute("src", this.mainTexture);  
+		this.ActorHealth = 100; 	
+		this.ActorState = "Alive"; //"Alive" is alive, "Dead" is dead
+		this.collisionSizeMinX1 = collisionSizeMinX1; //the collision size box
+		this.collisionSizeMinY1 = collisionSizeMinY1; //the collision size box
+		this.collisionSizeMaxX1 = collisionSizeMaxX1; //the collision size box
+		this.collisionSizeMaxY1 = collisionSizeMaxY1; //the collision size box	
+		this.DrawSizeX = DrawSizeX; //the draw size
+		this.DrawSizeY = DrawSizeY; //the draw size	
+		this.ClippingImageSizeX = ClippingImageSizeX;
+		this.ClippingImageSizeY = ClippingImageSizeY;
+		this.IsJumpingTimer = undefined;
+		this.bCanStopJumpNow = false;
+		this.bShouldGoDown = true;
+		this.IsCollidingWithSomething = false;
+		this.jumpSpeed = 4.0;
+		//this.DrawSizeX = DrawSizeX; //the draw size
+		//this.DrawSizeY = DrawSizeY; //the draw size	
+
+	
+
+		
+	} 
+	
+	SetState(ActorNewState)
+	{
+		this.ActorState = ActorNewState;
+	}
+	
+	ProcessMoveSmooth(newDesiredMovement)
+	{
+		this.x += newDesiredMovement;
+	}
+		
+		
+	BeginJump()
+	{ 
+		let self; 	
+	
+		self = this;	
+		
+		if( this.ActorState != "Jumping" ) 
+		{
+
+			this.IsJumpingTimer = setInterval(StartedToJump, 250);
+			this.bCanStopJumpNow = false;		
+			this.jumpSpeed = 4.0;
+			this.SetState("Jumping");
+
+			function StartedToJump()
+			{
+				clearTimeout(self.IsJumpingTimer); 	
+				self.bCanStopJumpNow = true;
+				self.bShouldGoDown = true;
+
+			}
+
+		} 
+	}
+		
+
+		
+	isActorCollidingWithSomething()
+	{ 
+	let self = this;
+	let returnatieBool = false;
+	let actorsWhichIsCollidingWith = [];
+	
+		actorsIngame.forEach(CheckCollisionForActorsInFunction);
+		
+		function CheckCollisionForActorsInFunction(value, index, array) 
+		{	
+		
+			if( value != self && value.constructor.name != "Pawn") 
+			{
+				if( DoesThisCollide( self.x, self.y, (value.x - value.collisionSizeMinX1/2) + 
+				value.collisionSizeMinX1, (value.y - value.collisionSizeMinY1/2) + 
+				value.collisionSizeMinY1, (value.x + value.collisionSizeMaxX1 / 2 ) + 
+				value.collisionSizeMaxX1, (value.y + value.collisionSizeMaxY1/2 ) + 
+				value.collisionSizeMaxY1 ) ) 
+				{
+					returnatieBool = true;
+					actorsWhichIsCollidingWith.push(value);
+				}
+			}
+			
+		
+		}
+		 
+		return actorsWhichIsCollidingWith;
+		return returnatieBool;
+	}
+		
+		
+	IsAnyActorAsPlatform(pActorsChecking = [])
+	{
+		let i= 0;
+		console.log(pActorsChecking.length);
+	
+		for( i = 0; i < pActorsChecking.length; i++) 
+		{ 
+			console.log("Hello");
+
+
+			if(  ReturnDirectionActors ( this, pActorsChecking[i] ) < 0 )
+			{
+				return true;	
+			}
+		}
+		
+		return false;
+	}
+		
+	ActorTick(DeltaTime)
+	{
+		let self; 
+		let ArrayOfActorsColliding = [];
+		
+		self = this;
+		//super.ActorTick(DeltaTime); 
+		//this.actorClass="Pawn";
+	
+		ArrayOfActorsColliding = this.isActorCollidingWithSomething();
+					
+		
+		if( ArrayOfActorsColliding.length > 0 )
+		{
+
+				console.log("FROM pawn colliding now Jump now is " +ArrayOfActorsColliding[0].name );
+													//True up down false TranslateNumToUpOrDown( ReturnDirectionActors ( isActorCollidingWithSomething(), this ) )
+			if(this.bCanStopJumpNow == false    )
+			{
+				
+				if(this.IsAnyActorAsPlatform(ArrayOfActorsColliding) == true ) 
+					this.AirActualSpeed = 0;
+				else
+					this.AirActualSpeed = 2.5;
+				
+			}
+			else
+			{
+			    if( self.ActorState == "Jumping" ) 
+				{
+					
+					this.SetState("Idle");
+					this.bCanStopJumpNow = false;
+					
+				}
+			}
+		
+			
+		}
+		else
+		{
+				//console.log(this.bCanStopJumpNow+this.name);	
+			if(this.bCanStopJumpNow == false )
+			{
+				this.AirActualSpeed = 2.5;			
+			}		
+		}
+	
+
+	
+	
+		actorsIngame.forEach(CheckCollisionForActors);
+		
+		//Just for debugging purposes see if they are colliding AN DSTOP THE JUMPING
+		function CheckCollisionForActors(value, index, array) 
+		{
+	
+
+
+			if( value != self && value.constructor.name != "Pawn" && self.constructor.name == "Pawn" ) //Make sure we are
+			{					//Dont collide pawn and pawn																		
+				if( DoesThisCollide( self.x, self.y, (value.x - value.collisionSizeMinX1/2) + value.collisionSizeMinX1, (value.y - value.collisionSizeMinY1/2) + value.collisionSizeMinY1, (value.x + value.collisionSizeMaxX1 / 2 ) + value.collisionSizeMaxX1, (value.y + value.collisionSizeMaxY1/2 ) + value.collisionSizeMaxY1 ) ) 
+				{ 
+					
+
+				
+				}
+				else
+				{
+				}
+			}
+			
+			
+        }	
+	
+		if(this.constructor.name == "Pawn" && this.ActorState != "Jumping" )
+		{
+			//if(this.bCanStopJumpNow == false ) 
+			//{
+				this.y += 1.0 * this.AirActualSpeed;
+			//}	
+		} 
+
+		if( this.ActorState == "Jumping" ) //Jumping gravity
+		{
+			this.y -= 1.0 * this.jumpSpeed;
+			this.jumpSpeed -= 0.1;
+
+			
+			//if( this.AirActualSpeed <= 0 ) 
+			//{
+			    //this.SetState("Idle");		
+			//}
+			
+			//this.AirActualSpeed = InterpolateNumbers( this.AirActualSpeed , 0.1, 0.0 );	);
+		}
+		
+	
+		if( this.PawnController && this.ActorState != "Dead" ) //Valid check here the object exists 
+		{
+			/* DEPRA FOR NOW
+			this.x = InterpolateNumbers( this.x, 0.001, this.PawnController.DesiredLocToGoX );
+			
+			
+			if ( Math.abs( InterpolateNumbers( this.x, 0.001, this.PawnController.DesiredLocToGoX ) ) > 50 ) 
+			{   
+				if( InterpolateNumbers( this.x, 0.001, this.PawnController.DesiredLocToGoX ) >  this.x  && screen<4) 
+				{
+					this.ChangeMainTexture('enemyR.png');  
+				}
+				else if( InterpolateNumbers( this.x, 0.001, this.PawnController.DesiredLocToGoX ) <  this.x  && screen<4)
+				{ 
+					this.ChangeMainTexture('enemyL.png'); 
+				}
+				else if( InterpolateNumbers( this.x, 0.001, this.PawnController.DesiredLocToGoX ) >  this.x  && screen>3) 
+				{
+					this.ChangeMainTexture('enemyRB.png');  
+				}
+				else if( InterpolateNumbers( this.x, 0.001, this.PawnController.DesiredLocToGoX ) <  this.x  && screen>3) 
+				{ 
+					this.ChangeMainTexture('enemyLB.png'); 
+				}
+			} 
+			*/
+		}
+	}	
+
+	
+} 
+
+//Controls and can control
+class BiController extends Actor 
+{
+
+  constructor(name, x, y, team, mainTexture, controlledactor, DesiredLocToGoX, DesiredLocToGoY, bPlayerControlled) 
+  {
+  super(name, x, y, team, mainTexture);
+  this.controlledactor = controlledactor; 
+	
+  this.DesiredLocToGoX = 0.0; 
+  this.DesiredLocToGoY = 0.0;     
+  this.bPlayerControlled = bPlayerControlled;     	  
+  }
+  
+  posses(possessed)
+  {
+	this.DesiredLocToGoX = possessed.x;
+	this.controlledactor = possessed; 
+	possessed.PawnController = this
+  }
+   
+  SetDesiredLocation(PDesiredLocToGoX, PDesiredLocToGoY)
+  {
+	this.DesiredLocToGoX = PDesiredLocToGoX; 
+	this.DesiredLocToGoY = PDesiredLocToGoY; 
+  }  
+   
+}
+
+
+class Pawn extends Actor 
+{
+	constructor(name, x, y, team, mainTexture, PawnController, Screen, actorClass, collisionSizeMinX1, collisionSizeMinY1, collisionSizeMaxX1, collisionSizeMaxY1, DrawSizeX, DrawSizeY, ClippingImageSizeX, ClippingImageSizeY ) 
+	{
+		super(name, x, y, team, mainTexture, "some interal texture", "Some health", "Some actor state", collisionSizeMinX1, collisionSizeMinY1, collisionSizeMaxX1, collisionSizeMaxY1, DrawSizeX, DrawSizeY, ClippingImageSizeX, ClippingImageSizeY ); 
+//constructor(name, x, y, team, mainTexture, InternalTexture, ActorHealth, ActorState, collisionSizeMinX1, collisionSizeMinY1, collisionSizeMaxX1, collisionSizeMaxY1, DrawSizeX, DrawSizeY) 
+	}
+
+
+
+	ActorFeltThroughWorld()
+	{ 
+		if(this.ActorState != "Dead") 
+		{ 
+			this.ActorDie();
+		}
+	
+	}
+	
+
+	ActorOutsideWorld()
+	{ 
+		if(this.ActorState != "Dead") 
+		{ 
+			this.DestroySelf();
+		}	
+	
+	}	
+	
+	
+
+
+}
+
+
+//Demonstration images
+var wall=new Image();
+var gladiatorTest=new Image();
+var TestPlatform=new Image();
+//Backround image for all the levels
+var BGImage=new Image();
+var MainCharacter; 
+var MainBiController; //The player controlled actor
+var EnemyCharacterStageOne;
+
+let actorsIngame = []; 
+
+function spawnActor(name, x,y, team, mainTexture, actorClass, ControlledActor, LifeTimeOfActor, ActorInitialSpeedX, ActorInitialSpeedY, bIsPlayerControlled, pcollisionSizeMinX1, pcollisionSizeMinY1, pcollisionSizeMaxX1, pcollisionSizeMaxY1, pDrawSizeX, pDrawSizeY, pClippingImageSizeX, pClippingImageSizeY)
+{
+    if( actorClass == "Actor")
+	{
+			//constructor(name, x, y, team, mainTexture, InternalTexture, ActorHealth, ActorState, collisionSizeMinX1, collisionSizeMinY1, collisionSizeMaxX1, collisionSizeMaxY1, DrawSizeX, DrawSizeY) 
+	    actorsIngame.push(new Actor(name, x, y, team, mainTexture, "InternalTexture", "Somehealth", "Somehealth",  pcollisionSizeMinX1, pcollisionSizeMinY1, pcollisionSizeMaxX1, pcollisionSizeMaxY1, pDrawSizeX, pDrawSizeY, pClippingImageSizeX, pClippingImageSizeY  )); 
+	}
+
+    if( actorClass == "BiController")   //constructor(name, x, y, team, mainTexture, controlledactor, DesiredLocToGoX, DesiredLocToGoY, bPlayerControlled) 
+	{
+	    actorsIngame.push(new BiController(name, x, y, team, mainTexture, screen, 0, 0,  bIsPlayerControlled,  pcollisionSizeMinX1, pcollisionSizeMinY1, pcollisionSizeMaxX1, pcollisionSizeMaxY1, pDrawSizeX, pDrawSizeY, pClippingImageSizeX, pClippingImageSizeY    )); //TO FIX
+	}
+
+	if( actorClass == "Pawn" )
+	{	
+	    actorsIngame.push(new Pawn(name, x, y, team, mainTexture, "some controller" , Screen, actorClass,  pcollisionSizeMinX1, pcollisionSizeMinY1, pcollisionSizeMaxX1, pcollisionSizeMaxY1, pDrawSizeX, pDrawSizeY, pClippingImageSizeX, pClippingImageSizeY    ) ); //Becareful miliseconds			
+	}
+//constructor(name, x, y, team, mainTexture, PawnController, Screen, actorClass, collisionSizeMinX1, collisionSizeMinY1, collisionSizeMaxX1, collisionSizeMaxY1, DrawSizeX, DrawSizeY)
+	return actorsIngame[actorsIngame.length-1]; 	
+}
+
+
+function BeginPlay() 
+{
+	window.requestAnimationFrame(draw);	
+       
+	
+
+	
+    if (document.images) 
+    { 
+		//Examples of assigning images to stuff
+		wall.setAttribute("src", "DesolatedHut.png");
+		gladiatorTest.setAttribute("src", "Mullius.png");
+		BGImage.setAttribute("src", "Bacrkound.png");
+		TestPlatform.setAttribute("src", "Platform.png");
+		
+		//Example of spawn actor  Spawn  here the player controller
+		//spawnActor('EnemyArcherArrow', this.controlledactor.x, this.controlledactor.y+54, 2,"fireL.png", "Projectile", null , 5000, -100, 0);   //actor 0	
+		MainCharacter = spawnActor('MulliusMainChar', 50, 450, 2, "Mullius.png", "Pawn", 0 ,10000, 1, 1, false, -100.0 ,-100.0, 100.0, 100.0, 95.0, 128.0, 100.0, 128.0);   //Mullius archer 1	
+		EnemyCharacterStageOne = spawnActor('EnemeyStageOneNumberOne', 50, 450, 2, "GladiatorLenemieWhite.png", "Pawn", 0 ,10000, 1, 1, false, -100.0 ,-100.0, 100.0, 100.0, 95.0, 128.0, 100.0, 128.0);   //Mullius archer 1
+		MainBiController = spawnActor('PlayerBiController', 25, 0, 2, "Mullius.png", "BiController",MainCharacter,100000,0,0,true );   //Controller bi so both for player and others
+		MainBiController.posses(MainCharacter) //Posses by player controller					//Collisions -X -Y X Y 
+		spawnActor('Plataforma1', 50, 600, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 2	
+		spawnActor('Plataforma2', 300, 600, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 2	
+		spawnActor('Plataforma3', 400, 450, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 3
+		spawnActor('Plataforma4Elevated', 700, 450, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 3		
+		
+		
+		//spawnActor('Plataforma4Elevated', 400, 450, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 3		
+				
+		
+		//spawnActor('Plataforma', 75, 200, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -100.0 ,-100.0, 100.0, 100.0, 256.0, 128.0, 885.0, 100.0 );   //Platform 1	
+		//spawnActor('Plataforma', 100, 200, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -100.0 ,-100.0, 100.0, 100.0, 256.0, 128.0, 885.0, 100.0 );   //Platform 1			
+	}
+}                      
+
+	
+function addLoadEvent(func) 
+{
+	
+		
+	var oldonload = window.onload;
+	if (typeof window.onload != 'function') 
+        {
+		window.onload = func;
+	    } 
+    else 
+        {
+    	window.onload = function() 
+            {
+			if (oldonload) 
+                {
+				oldonload();
+			    }
+			func();
+		    }
+    	}
+    }
+// PRELOAD IMAGES
+addLoadEvent(BeginPlay);
+//VARS
+let deltaTime = 0;
+let lastTimestamp = 0;
+const perfectFrameTime = 1000 / 60;
+
+
+// CANVAS
+var canvas = document.getElementById('canvas');
+
+if (canvas.getContext) 
+{
+	var ctx = canvas.getContext('2d');
+}
+// KEYBOARD
+
+
+
+document.onkeydown = checkKeyDown;
+function checkKeyDown(e) //Interpolating with no purpose!
+    {
+		//left walk key <-
+		if (e.keyCode == '37' )  
+        {  
+			MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x - 10 );
+			console.log("FROM checkKeyDown pressing wrong key to move ");
+        }
+		
+		//right walk key ->
+		if (e.keyCode == '39' ) 
+        {   
+			MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x , 1, MainBiController.controlledactor.x + 10 );
+			console.log("FROM checkKeyDown pressing wrong key to move ");	
+        }
+		
+		//Left Walk A key
+		if (e.keyCode == '65' )  
+        {  
+			MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x - 10 );	
+        }	
+		
+		//Right Walk D key		
+		if (e.keyCode == '68' )  
+        {  
+			MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x + 10 );
+        }				
+	
+		//Spacebar jump		
+		if (e.keyCode == '32' )  
+        {  
+			MainBiController.controlledactor.BeginJump();
+        }	
+
+	
+ 
+    
+    }
+document.onkeyup = checkKeyUp;
+//ON RELASE
+function checkKeyUp(e) 
+    {
+		if (e.keyCode == '37') //left cursor
+        {
+		
+
+		
+        }
+		if (e.keyCode == '39') //right cursor
+        {   
+ 
+        }
+    }
+	
+
+
+/*
+	
+//Commentar aixo per de espawnajar els arquers, o kualsavol actor
+let coses = [];  //[new actor('name1', 20, 180, 1), new actor('name2', 30, 180, 2), new actor('name3', 40, 180, 2)];
+	
+	
+coses.push(new cosa("Soc una cosa", 10, 10, 1, "DesolatedHut.png")); 
+*/	
+	
+	
+//Desc: Aqusta funcio savisa tot el temps
+function draw(timestamp) 
+{	
+    requestAnimationFrame(draw);
+    deltaTime = (timestamp - lastTimestamp) / perfectFrameTime;
+
+
+		
+    //clean canvas screen
+    canvas.width=canvas.width;
+    //screen
+    ctx.beginPath();
+
+    //ctx.drawImage(wall,0,0,500,500,0,0,90,90);
+    //ctx.drawImage(wall,40,40,500,500,100,100,90,90);
+	ctx.drawImage(BGImage,0,0,1,1,0,0,1280,720);	 //this is the backround Occupy whole screen
+    //ctx.drawImage(gladiatorTest,0,0,128,128,0,0,128,128); 
+    //ctx.drawImage(TestPlatform,0,0,128,128,0,0,128,128); 
+	
+	
+		actorsIngame.forEach(DrawActors);
+		
+		function DrawActors(value, index, array) 
+		{																		//value.DrawSizeX																					//Scale X      //Scale Y
+			ctx.drawImage(value.InternalTexture,0,0,value.ClippingImageSizeX,value.ClippingImageSizeY,value.x,value.y,value.DrawSizeX,value.DrawSizeY);
+			value.ActorTick(timestamp); 
+        }		
+	
+
+	lastTimestamp = timestamp;	
+} //End draw
+	
+	
+//Global mathemathical function
+function DoesThisCollide( originX, originY, SizeXMin1, SizeYMin1, SizeXMax1, SizeYMax1  ) 	
+{
+
+	if( originX < SizeXMax1 ) //First X
+	{ 
+		if( originX > SizeXMin1 ) 
+		{ 
+			if( originY < SizeYMax1) //Then Y 
+			{
+				if(  originY > SizeYMin1 ) 
+				{									
+					return true;
+				} 
+			}
+		} 	
+	} 
+
+	return false;
+}
+
+//To then step on it or so use outer or from 180 to -180 if happends to be exactly 0 or so on the feet then step on it
+function ReturnDirectionActors(Actor1, Actor2)
+{
+
+	return Actor1.y - Actor2.y;
+
+}
+
+function TranslateNumToUpOrDown(DirNum)
+{
+
+	return DirNum < 0;
+	
+}
+
+
+function InterpolateNumbers(ActualNumber, InterpSpeed, FinalNumber )
+{
+    return Math.round(ActualNumber + ( FinalNumber - ActualNumber ) * InterpSpeed );
+}
+
+
+
+</script>
+
+
+
+</html>
