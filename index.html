@@ -32,8 +32,8 @@ Your web browser does not support canvas.
 //Main class for everything
 //Task list 
 
-//Clean the log first 
-//Use direction to know if object is on our feet, and so we can step on it, or just stop jumping
+//do make the center of the pawn checking the feet for the platforms when checking up and down in the function or where 
+// it needs
 
 
 class Actor 
@@ -416,7 +416,7 @@ function BeginPlay()
 		MainBiController = spawnActor('PlayerBiController', 25, 0, 2, "Mullius.png", "BiController",MainCharacter,100000,0,0,true );   //Controller bi so both for player and others
 		MainBiController.posses(MainCharacter) //Posses by player controller					//Collisions -X -Y X Y 
 		spawnActor('Plataforma1', 50, 600, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 2	
-		spawnActor('Plataforma2', 300, 600, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 2	
+		spawnActor('Plataforma2', 300, 500, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 2	
 		spawnActor('Plataforma3', 400, 450, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 3
 		spawnActor('Plataforma4Elevated', 700, 450, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 3		
 		
@@ -542,7 +542,7 @@ function draw(timestamp)
 {	
     requestAnimationFrame(draw);
     deltaTime = (timestamp - lastTimestamp) / perfectFrameTime;
-
+	console.log(deltaTime);
 
 		
     //clean canvas screen
@@ -594,8 +594,8 @@ function DoesThisCollide( originX, originY, SizeXMin1, SizeYMin1, SizeXMax1, Siz
 //To then step on it or so use outer or from 180 to -180 if happends to be exactly 0 or so on the feet then step on it
 function ReturnDirectionActors(Actor1, Actor2)
 {
-
-	return Actor1.y - Actor2.y;
+								//Change the value that means that this is Up or down, later on use actor height or the collision
+	return Actor1.y - ( Actor2.y - 60 );
 
 }
 
