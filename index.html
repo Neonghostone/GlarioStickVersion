@@ -103,6 +103,7 @@ class Actor
 
 			function StartedToJump()
 			{
+			
 				clearTimeout(self.IsJumpingTimer); 	
 				self.bCanStopJumpNow = true;
 				self.bShouldGoDown = true;
@@ -149,11 +150,11 @@ class Actor
 	IsAnyActorAsPlatform(pActorsChecking = [])
 	{
 		let i= 0;
-		console.log(pActorsChecking.length);
+
 	
 		for( i = 0; i < pActorsChecking.length; i++) 
 		{ 
-			console.log("Hello");
+
 
 
 			if(  ReturnDirectionActors ( this, pActorsChecking[i] ) < 0 )
@@ -175,13 +176,23 @@ class Actor
 		//this.actorClass="Pawn";
 	
 		ArrayOfActorsColliding = this.isActorCollidingWithSomething();
-					
+				
+
+		if(this.bMoving) 
+		{ 
+			if(this.bGoingRight) 
+			{
+				this.x -= 1;
+			} 
+			else
+			{ 
+				this.x += 1;			
+			}
+		
+		}
 		
 		if( ArrayOfActorsColliding.length > 0 )
-		{
-
-				console.log("FROM pawn colliding now Jump now is " +ArrayOfActorsColliding[0].name );
-													//True up down false TranslateNumToUpOrDown( ReturnDirectionActors ( isActorCollidingWithSomething(), this ) )
+		{											//True up down false TranslateNumToUpOrDown( ReturnDirectionActors ( isActorCollidingWithSomething(), this ) )
 			if(this.bCanStopJumpNow == false    )
 			{
 				
@@ -206,7 +217,7 @@ class Actor
 		}
 		else
 		{
-				//console.log(this.bCanStopJumpNow+this.name);	
+
 			if(this.bCanStopJumpNow == false )
 			{
 				this.AirActualSpeed = 2.5;			
@@ -301,19 +312,22 @@ class BiController extends Actor
 
   constructor(name, x, y, team, mainTexture, controlledactor, DesiredLocToGoX, DesiredLocToGoY, bPlayerControlled) 
   {
-  super(name, x, y, team, mainTexture);
-  this.controlledactor = controlledactor; 
+	super(name, x, y, team, mainTexture);
+	this.controlledactor = controlledactor; 
 	
-  this.DesiredLocToGoX = 0.0; 
-  this.DesiredLocToGoY = 0.0;     
-  this.bPlayerControlled = bPlayerControlled;     	  
+	this.DesiredLocToGoX = 0.0; 
+	this.DesiredLocToGoY = 0.0;     
+	this.bPlayerControlled = bPlayerControlled; 
+	this.bMoving = false; //WIP If this is true shall move by tick same as bRightPressed so far
+	this.bGoingRight = false;
+	
   }
   
   posses(possessed)
   {
 	this.DesiredLocToGoX = possessed.x;
 	this.controlledactor = possessed; 
-	possessed.PawnController = this
+	possessed.PawnController = this;
   }
    
   SetDesiredLocation(PDesiredLocToGoX, PDesiredLocToGoY)
@@ -415,12 +429,13 @@ function BeginPlay()
 		EnemyCharacterStageOne = spawnActor('EnemeyStageOneNumberOne', 50, 450, 2, "GladiatorLenemieWhite.png", "Pawn", 0 ,10000, 1, 1, false, -100.0 ,-100.0, 100.0, 100.0, 95.0, 128.0, 100.0, 128.0);   //Mullius archer 1
 		MainBiController = spawnActor('PlayerBiController', 25, 0, 2, "Mullius.png", "BiController",MainCharacter,100000,0,0,true );   //Controller bi so both for player and others
 		MainBiController.posses(MainCharacter) //Posses by player controller					//Collisions -X -Y X Y 
-		spawnActor('Plataforma1', 50, 600, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 2	
-		spawnActor('Plataforma2', 300, 500, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 2	
-		spawnActor('Plataforma3', 400, 450, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 3
-		spawnActor('Plataforma4Elevated', 700, 450, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 3		
+		spawnActor('Plataforma1', 50, 600, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -125.0 ,-200.0, 125.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 2	
+		spawnActor('Plataforma2', 300, 550, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -125.0 ,-200.0, 125.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 2	
+		spawnActor('Plataforma3', 400, 450, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -125.0 ,-200.0, 125.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 3
+		spawnActor('Plataforma4Elevated', 700, 450, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -125.0 ,-200.0, 125.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 3		
 		
-		
+		//function spawnActor(name, x,y, team, mainTexture, actorClass, ControlledActor, LifeTimeOfActor, ActorInitialSpeedX, ActorInitialSpeedY, bIsPlayerControlled, pcollisionSizeMinX1, pcollisionSizeMinY1, pcollisionSizeMaxX1, pcollisionSizeMaxY1, pDrawSizeX, pDrawSizeY, pClippingImageSizeX, pClippingImageSizeY)
+
 		//spawnActor('Plataforma4Elevated', 400, 450, 2, "Platform.png", "Actor",0 ,10000, 1, 1, false, -150.0 ,-200.0, 150.0, 200.0, 256.0, 64.0, 885.0, 100.0 );   //Platform 3		
 				
 		
@@ -475,33 +490,41 @@ function checkKeyDown(e) //Interpolating with no purpose!
     {
 		//left walk key <-
 		if (e.keyCode == '37' )  
-        {  
-			MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x - 10 );
-			console.log("FROM checkKeyDown pressing wrong key to move ");
+        { 
+			MainBiController.controlledactor.bMoving = true;
+			MainBiController.controlledactor.bGoingRight = true;	
+			//MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x - 10 );
         }
 		
 		//right walk key ->
 		if (e.keyCode == '39' ) 
         {   
-			MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x , 1, MainBiController.controlledactor.x + 10 );
-			console.log("FROM checkKeyDown pressing wrong key to move ");	
+			MainBiController.controlledactor.bMoving = true;
+			MainBiController.controlledactor.bGoingRight = false;			
+			//MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x + 10 );		
         }
 		
 		//Left Walk A key
 		if (e.keyCode == '65' )  
         {  
-			MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x - 10 );	
+			MainBiController.controlledactor.bMoving = true;
+			MainBiController.controlledactor.bGoingRight = true;	
+			//MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x - 10 );	
         }	
 		
 		//Right Walk D key		
 		if (e.keyCode == '68' )  
         {  
-			MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x + 10 );
+			MainBiController.controlledactor.bMoving = true;
+			MainBiController.controlledactor.bGoingRight = false;			
+			//MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x + 10 );
         }				
 	
 		//Spacebar jump		
 		if (e.keyCode == '32' )  
-        {  
+        { 
+			MainBiController.bMoving = true;
+	
 			MainBiController.controlledactor.BeginJump();
         }	
 
@@ -516,13 +539,36 @@ function checkKeyUp(e)
 		if (e.keyCode == '37') //left cursor
         {
 		
-
+			MainBiController.controlledactor.bMoving = false;
+			MainBiController.controlledactor.bGoingRight = false;	
+			//MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x - 10 );	
 		
         }
 		if (e.keyCode == '39') //right cursor
         {   
- 
+ 			MainBiController.controlledactor.bMoving = false;
+			MainBiController.controlledactor.bGoingRight = true;			
+			//MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x + 10 );
         }
+		
+		//Left Walk A key STOP 
+		if (e.keyCode == '65' )  
+        {  
+			MainBiController.controlledactor.bMoving = false;
+			MainBiController.controlledactor.bGoingRight = false;	
+			//MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x - 10 );	
+        }	
+		
+		//Right Walk D key STOP 	
+		if (e.keyCode == '68' )  
+        {  
+			MainBiController.controlledactor.bMoving = false;
+			MainBiController.controlledactor.bGoingRight = true;			
+			//MainBiController.controlledactor.x = InterpolateNumbers( MainBiController.controlledactor.x ,  1, MainBiController.controlledactor.x + 10 );
+        }				
+			
+		
+		
     }
 	
 
@@ -542,7 +588,7 @@ function draw(timestamp)
 {	
     requestAnimationFrame(draw);
     deltaTime = (timestamp - lastTimestamp) / perfectFrameTime;
-	console.log(deltaTime);
+
 
 		
     //clean canvas screen
@@ -570,7 +616,7 @@ function draw(timestamp)
 } //End draw
 	
 	
-//Global mathemathical function
+//Desc: Neongho:Global mathemathical function
 function DoesThisCollide( originX, originY, SizeXMin1, SizeYMin1, SizeXMax1, SizeYMax1  ) 	
 {
 
@@ -591,27 +637,30 @@ function DoesThisCollide( originX, originY, SizeXMin1, SizeYMin1, SizeXMax1, Siz
 	return false;
 }
 
-//To then step on it or so use outer or from 180 to -180 if happends to be exactly 0 or so on the feet then step on it
+//Desc: Neongho: To then step on it or so use outer or from 180 to -180 if happends to be exactly 0 or so on the feet then step on it
 function ReturnDirectionActors(Actor1, Actor2)
-{
-								//Change the value that means that this is Up or down, later on use actor height or the collision
-	return Actor1.y - ( Actor2.y - 60 );
-
+{							//Change the value that means that this is Up or down, later on use actor height or the collision
+	return Actor1.y - ( Actor2.y - 75 );
 }
 
+//Desc: Neongho: translates a number nto the direction which returns true or false
 function TranslateNumToUpOrDown(DirNum)
 {
-
-	return DirNum < 0;
-	
+	return DirNum < 0;	
 }
 
-
+//Desc: Neongho: Interpolate does not work so well 
 function InterpolateNumbers(ActualNumber, InterpSpeed, FinalNumber )
 {
     return Math.round(ActualNumber + ( FinalNumber - ActualNumber ) * InterpSpeed );
 }
 
+//Desc: Neongho: Can we move to the right or left? 
+function IsMovementToSidePossible(bRight)
+{
+
+	return true; //returns true as default
+} 
 
 
 </script>
